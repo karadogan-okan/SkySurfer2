@@ -10,9 +10,16 @@ public class PlayerController : MonoBehaviour
     public float laneSwitchSpeed = 15f;
 
     [Header("Slingshot")]
-    public float launchMultiplier = 12f;
-    public float maxDragDistance = 3f;
-    public float minDragToLaunch = 0.5f;
+    [Tooltip("Multiplier converting drag distance (world units) to launch speed.")]
+    public float launchSpeedMultiplier = 6f;
+    [Tooltip("Maximum launch speed regardless of how far the slingshot is pulled.")]
+    public float maxLaunchSpeed = 20f;
+
+    [Header("Acceleration")]
+    [Tooltip("Upward velocity added per second after launch.")]
+    public float acceleration = 2f;
+    [Tooltip("Maximum upward speed the player can reach via acceleration.")]
+    public float maxSpeed = 40f;
 
     private Rigidbody2D rb;
     private bool isLaunched = false;
@@ -51,6 +58,13 @@ public class PlayerController : MonoBehaviour
         HandleTouchInput();
     #endif
 
+        // Gradually accelerate upward after launch
+        if (isLaunched && rb.linearVelocity.y > 0f)
+        {
+            float newSpeed = Mathf.Min(rb.linearVelocity.y + acceleration * Time.deltaTime, maxSpeed);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, newSpeed);
+        }
+
         // Reset when player falls back down
         if (isLaunched && transform.position.y <= -4f)
             ResetPlayer();
@@ -76,7 +90,7 @@ public class PlayerController : MonoBehaviour
         if (Keyboard.current.downArrowKey.wasReleasedThisFrame ||
             Keyboard.current.sKey.wasReleasedThisFrame)
         {
-            Launch(Vector2.up * maxDragDistance);
+            Launch(maxLaunchSpeed / launchSpeedMultiplier); // keyboard simulates a full pull
         }
     }
     }
@@ -86,12 +100,18 @@ public class PlayerController : MonoBehaviour
         currentLane = Mathf.Clamp(currentLane + direction, 0, lanePositions.Length - 1);
     }
 
-    void Launch(Vector2 direction)
+    // Called by SlingshotVisual (touch/mouse) or keyboard input.
+    // dragDistance: how far the slingshot was pulled in world units.
+    public void Launch(float dragDistance)
     {
         isLaunched = true;
         rb.gravityScale = 2f;
-        rb.linearVelocity = new Vector2(0f, direction.y * launchMultiplier);
+        float speed = Mathf.Min(dragDistance * launchSpeedMultiplier, maxLaunchSpeed);
+        rb.linearVelocity = new Vector2(0f, speed);
     }
+
+    // Touch launching is handled by SlingshotVisual.
+    void HandleTouchInput() { }
 
     void ResetPlayer()
     {

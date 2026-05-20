@@ -14,11 +14,11 @@ public class SlingshotVisual : MonoBehaviour
     [Header("Band Settings")]
     public LineRenderer leftBand;
     public LineRenderer rightBand;
-    public float maxDragDistance = 3f;
 
     private PlayerController playerController;
     private Vector2 dragStartWorld;
     private bool isDragging = false;
+    private float currentDragDistance = 0f;
 
     void Awake()
     {
@@ -41,6 +41,7 @@ public class SlingshotVisual : MonoBehaviour
 
 #if UNITY_EDITOR
         HandleKeyboardVisual();
+        HandleMouseVisual();
 #else
         HandleTouchVisual();
 #endif
@@ -51,12 +52,51 @@ public class SlingshotVisual : MonoBehaviour
         if (Keyboard.current.downArrowKey.isPressed ||
             Keyboard.current.sKey.isPressed)
         {
-            Vector3 pulledPos = player.position + Vector3.down * maxDragDistance;
+            // Show a fixed visual stretch for keyboard (editor only)
+            Vector3 pulledPos = player.position + Vector3.down * 3f;
             DrawBands(pulledPos);
         }
         else
         {
             HideBands();
+        }
+    }
+
+    void HandleMouseVisual()
+    {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        Vector2 worldPos = Camera.main.ScreenToWorldPoint(mouse.position.ReadValue());
+
+        if (mouse.leftButton.wasPressedThisFrame)
+        {
+            dragStartWorld = worldPos;
+            isDragging = true;
+        }
+        else if (mouse.leftButton.isPressed && isDragging)
+        {
+            Vector2 drag = worldPos - dragStartWorld;
+
+            if (drag.y < 0)
+            {
+                currentDragDistance = drag.magnitude;
+                Vector3 pulledPos = player.position + (Vector3)drag;
+                DrawBands(pulledPos);
+            }
+            else
+            {
+                currentDragDistance = 0f;
+                HideBands();
+            }
+        }
+        else if (mouse.leftButton.wasReleasedThisFrame && isDragging)
+        {
+            isDragging = false;
+            HideBands();
+            if (currentDragDistance > 0f)
+                playerController.Launch(currentDragDistance);
+            currentDragDistance = 0f;
         }
     }
 
@@ -83,12 +123,13 @@ public class SlingshotVisual : MonoBehaviour
 
             if (drag.y < 0)
             {
-                Vector2 clampedDrag = Vector2.ClampMagnitude(drag, maxDragDistance);
-                Vector3 pulledPos = player.position + (Vector3)clampedDrag;
+                currentDragDistance = drag.magnitude;
+                Vector3 pulledPos = player.position + (Vector3)drag;
                 DrawBands(pulledPos);
             }
             else
             {
+                currentDragDistance = 0f;
                 HideBands();
             }
         }
@@ -96,6 +137,9 @@ public class SlingshotVisual : MonoBehaviour
         {
             isDragging = false;
             HideBands();
+            if (currentDragDistance > 0f)
+                playerController.Launch(currentDragDistance);
+            currentDragDistance = 0f;
         }
     }
 

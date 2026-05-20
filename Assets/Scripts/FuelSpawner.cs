@@ -8,7 +8,8 @@ public class FuelSpawner : MonoBehaviour
     public GameObject fullFuelPrefab;   // fills tank completely
 
     [Header("Spawn Settings")]
-    public float spawnInterval = 3f;
+    public float spawnIntervalMin = 2f;
+    public float spawnIntervalMax = 4f;
     public float spawnAheadDistance = 15f;
 
     [Header("Spawn Chances (out of 100)")]
@@ -24,6 +25,12 @@ public class FuelSpawner : MonoBehaviour
     public SpeedManager speedManager;
 
     private float timer;
+    private float nextSpawnInterval;
+
+    void Start()
+    {
+        nextSpawnInterval = Random.Range(spawnIntervalMin, spawnIntervalMax);
+    }
 
     void Update()
     {
@@ -31,9 +38,10 @@ public class FuelSpawner : MonoBehaviour
         if (speedManager.IsGameOver) return;
 
         timer += Time.deltaTime;
-        if (timer >= spawnInterval)
+        if (timer >= nextSpawnInterval)
         {
             timer = 0f;
+            nextSpawnInterval = Random.Range(spawnIntervalMin, spawnIntervalMax);
             SpawnFuel();
         }
     }

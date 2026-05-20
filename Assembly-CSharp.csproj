@@ -51,11 +51,12 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\FuelPickup.cs" />
+    <Compile Include="Assets\Scripts\FreezeSpawner.cs" />
     <Compile Include="Assets\Scripts\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\SpeedManager.cs" />
     <Compile Include="Assets\Scripts\FuelSpawner.cs" />
     <Compile Include="Assets\Scripts\SlingshotVisual.cs" />
-    <Compile Include="Assets\Scripts\ParallaxBackground.cs" />
+    <Compile Include="Assets\Scripts\FuelFreezePickup.cs" />
     <Compile Include="Assets\Scripts\RestartButton.cs" />
     <Compile Include="Assets\Scripts\CloudBackground.cs" />
     <Compile Include="Assets\Scripts\CameraFollow.cs" />
@@ -77,13 +78,13 @@
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
-    <None Include="Assets\Assets\ufo\Spritesheets\spritesheet_spaceships.xml" />
+    <None Include="Assets\Sprites\ufo\Spritesheets\spritesheet_spaceships.xml" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
-    <None Include="Assets\Assets\ufo\Spritesheets\spritesheet_lasers.xml" />
+    <None Include="Assets\Sprites\ufo\Spritesheets\spritesheet_lasers.xml" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Sprite.shader" />
   </ItemGroup>

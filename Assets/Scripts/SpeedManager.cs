@@ -33,6 +33,7 @@ public class SpeedManager : MonoBehaviour
     private bool isGameOver = false;
     private bool hasLaunched = false;
     private float totalDistance = 0f;
+    private float freezeTimer = 0f;
 
     public bool HasLaunched => hasLaunched;
     public bool IsGameOver => isGameOver;
@@ -65,13 +66,20 @@ public class SpeedManager : MonoBehaviour
 
         if (!hasLaunched) return;
 
-        // Drain fuel over time
+        // Count down freeze timer
+        if (freezeTimer > 0f)
+            freezeTimer -= Time.deltaTime;
+
+        // Drain fuel over time (skip while freeze is active)
         if (currentFuel > 0f)
         {
-            currentFuel -= fuelDrainRate * Time.deltaTime;
-            currentFuel = Mathf.Clamp(currentFuel, 0f, maxFuel);
+            if (freezeTimer <= 0f)
+            {
+                currentFuel -= fuelDrainRate * Time.deltaTime;
+                currentFuel = Mathf.Clamp(currentFuel, 0f, maxFuel);
+            }
 
-            // No gravity while fuel available
+            // No gravity while fuel is available or frozen
             playerRb.gravityScale = 0f;
         }
         else
@@ -117,6 +125,12 @@ public class SpeedManager : MonoBehaviour
     public void AddFuel(float amount)
     {
         currentFuel = Mathf.Clamp(currentFuel + amount, 0f, maxFuel);
+    }
+
+    public void ActivateFuelFreeze(float duration)
+    {
+        // If a freeze is already active, extend it rather than restart it.
+        freezeTimer = Mathf.Max(freezeTimer, duration);
     }
 
     void SetGaugeVisible(bool visible)
