@@ -107,7 +107,7 @@ public class SpeedManager : MonoBehaviour
 
         // Update live score on top right
         if (currentScoreText)
-            currentScoreText.text = "Score: " + Mathf.RoundToInt(totalDistance) + "m";
+            currentScoreText.text = "Score: " + Mathf.RoundToInt(totalDistance) * 10 + "m";
 
         // Game over when player fully stops
         if (hasLaunched && currentSpeed < 0.05f)
@@ -130,7 +130,7 @@ public class SpeedManager : MonoBehaviour
         playerController.enabled = false;
         cameraFollow.enabled = false;
 
-        int finalScore = Mathf.RoundToInt(totalDistance);
+        int finalScore = Mathf.RoundToInt(totalDistance) * 10;
 
         // Save high score
         int highScore = PlayerPrefs.GetInt("HighScore", 0);

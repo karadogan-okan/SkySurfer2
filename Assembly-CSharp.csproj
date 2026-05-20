@@ -57,6 +57,7 @@
     <Compile Include="Assets\Scripts\SlingshotVisual.cs" />
     <Compile Include="Assets\Scripts\ParallaxBackground.cs" />
     <Compile Include="Assets\Scripts\RestartButton.cs" />
+    <Compile Include="Assets\Scripts\CloudBackground.cs" />
     <Compile Include="Assets\Scripts\CameraFollow.cs" />
   </ItemGroup>
   <ItemGroup>
