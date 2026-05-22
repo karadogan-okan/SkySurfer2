@@ -13,6 +13,5 @@ AssetOrigin:
   productId: 257931
   packageName: 'UNDERPOLY: Free Hot-Air Balloons'
   packageVersion: 1.2
-  assetPath: Assets/UNDERPOLY - Free Hot-Air Balloons/Graphics/Shaders/Shader Sub
-    Graphs/ColorReplaceSubGraph.shadersubgraph
+  assetPath: Assets/Sprites/balloons/Graphics/Shaders/Shader Sub Graphs/ColorReplaceSubGraph.shadersubgraph
   uploadId: 621836

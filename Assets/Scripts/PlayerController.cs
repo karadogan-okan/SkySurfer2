@@ -1,13 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Lanes")]
-    public float[] lanePositions = { -2f, 0f, 2f };
-    public int currentLane = 1;
-    public float laneSwitchSpeed = 15f;
+    [Header("Movement")]
+    [Tooltip("Horizontal movement speed in world units per second.")]
+    public float moveSpeed = 8f;
+    [Tooltip("How far from the screen edge the player is clamped.")]
+    public float screenEdgeMargin = 0.3f;
 
     [Header("Slingshot")]
     [Tooltip("Multiplier converting drag distance (world units) to launch speed.")]
@@ -22,6 +24,7 @@ public class PlayerController : MonoBehaviour
     public float maxSpeed = 40f;
 
     private Rigidbody2D rb;
+    private Camera mainCamera;
     private bool isLaunched = false;
     public bool IsLaunched => isLaunched;
 
@@ -40,23 +43,16 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
+        mainCamera = Camera.main;
     }
 
     void Update()
     {
-        // Always allow lane switching regardless of launched state
-        Vector3 target = new Vector3(lanePositions[currentLane], transform.position.y, 0f);
-        transform.position = new Vector3(
-            Mathf.Lerp(transform.position.x, target.x, laneSwitchSpeed * Time.deltaTime),
-            transform.position.y,
-            0f
-        );
-
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
         HandleKeyboardInput();
-    #else
-        HandleTouchInput();
-    #endif
+#else
+        HandleTouchMovement();
+#endif
 
         // Gradually accelerate upward after launch
         if (isLaunched && rb.linearVelocity.y > 0f)
@@ -65,39 +61,60 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, newSpeed);
         }
 
-        // Reset when player falls back down
-        if (isLaunched && transform.position.y <= -4f)
-            ResetPlayer();
+        ClampToScreen();
     }
 
     void HandleKeyboardInput()
     {
-    // Always allow lane switching
-    if (Keyboard.current.rightArrowKey.wasPressedThisFrame ||
-        Keyboard.current.dKey.wasPressedThisFrame)
-    {
-        SwitchLane(1);
-    }
-    else if (Keyboard.current.leftArrowKey.wasPressedThisFrame ||
-             Keyboard.current.aKey.wasPressedThisFrame)
-    {
-        SwitchLane(-1);
-    }
+        // Horizontal movement — hold to move continuously
+        float moveDir = 0f;
+        if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
+            moveDir = -1f;
+        else if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
+            moveDir = 1f;
 
-    // Only launch when not already in the air
-    if (!isLaunched)
-    {
-        if (Keyboard.current.downArrowKey.wasReleasedThisFrame ||
-            Keyboard.current.sKey.wasReleasedThisFrame)
+        transform.position = new Vector3(
+            transform.position.x + moveDir * moveSpeed * Time.deltaTime,
+            transform.position.y,
+            0f
+        );
+
+        // Launch on S / Down arrow release
+        if (!isLaunched)
         {
-            Launch(maxLaunchSpeed / launchSpeedMultiplier); // keyboard simulates a full pull
+            if (Keyboard.current.downArrowKey.wasReleasedThisFrame ||
+                Keyboard.current.sKey.wasReleasedThisFrame)
+            {
+                Launch(maxLaunchSpeed / launchSpeedMultiplier);
+            }
         }
     }
-    }
 
-    void SwitchLane(int direction)
+    void HandleTouchMovement()
     {
-        currentLane = Mathf.Clamp(currentLane + direction, 0, lanePositions.Length - 1);
+        // Movement input only active after launch —
+        // before launch, SlingshotVisual owns all touch input.
+        if (!isLaunched) return;
+
+        var activeTouches = Touch.activeTouches;
+        if (activeTouches.Count == 0) return;
+
+        float screenMidX = Screen.width * 0.5f;
+        float moveDir = 0f;
+
+        foreach (var touch in activeTouches)
+        {
+            if (touch.screenPosition.x < screenMidX)
+                moveDir = -1f;
+            else
+                moveDir = 1f;
+        }
+
+        transform.position = new Vector3(
+            transform.position.x + moveDir * moveSpeed * Time.deltaTime,
+            transform.position.y,
+            0f
+        );
     }
 
     // Called by SlingshotVisual (touch/mouse) or keyboard input.
@@ -110,21 +127,30 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(0f, speed);
     }
 
-    // Touch launching is handled by SlingshotVisual.
-    void HandleTouchInput() { }
-
-    void ResetPlayer()
+    void ClampToScreen()
     {
-        isLaunched = false;
-        rb.gravityScale = 0f;
-        rb.linearVelocity = Vector2.zero;
-        transform.position = new Vector3(lanePositions[currentLane], -4f, 0f);
+        if (mainCamera == null) return;
+        float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
+        float clampedX = Mathf.Clamp(
+            transform.position.x,
+            -halfWidth + screenEdgeMargin,
+             halfWidth - screenEdgeMargin
+        );
+        transform.position = new Vector3(clampedX, transform.position.y, 0f);
     }
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
-        foreach (float x in lanePositions)
-            Gizmos.DrawLine(new Vector3(x, -10f, 0f), new Vector3(x, 10f, 0f));
+        if (Camera.main == null) return;
+        float halfWidth = Camera.main.orthographicSize * Camera.main.aspect;
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(
+            new Vector3(-halfWidth + screenEdgeMargin, -20f, 0f),
+            new Vector3(-halfWidth + screenEdgeMargin,  20f, 0f)
+        );
+        Gizmos.DrawLine(
+            new Vector3(halfWidth - screenEdgeMargin, -20f, 0f),
+            new Vector3(halfWidth - screenEdgeMargin,  20f, 0f)
+        );
     }
 }

@@ -10,8 +10,9 @@ public class FreezeSpawner : MonoBehaviour
     [SerializeField] private float spawnIntervalMax = 12f;
     [SerializeField] private float spawnAheadDistance = 15f;
 
-    [Header("Lanes")]
-    public float[] lanePositions = { -2f, 0f, 2f };
+    [Header("Spawn Bounds")]
+    [Tooltip("Margin from screen edge when placing freeze pickups.")]
+    [SerializeField] private float spawnEdgeMargin = 0.5f;
 
     [Header("References")]
     public Transform player;
@@ -19,9 +20,11 @@ public class FreezeSpawner : MonoBehaviour
 
     private float timer;
     private float nextSpawnInterval;
+    private Camera mainCamera;
 
     void Start()
     {
+        mainCamera = Camera.main;
         nextSpawnInterval = Random.Range(spawnIntervalMin, spawnIntervalMax);
     }
 
@@ -43,8 +46,11 @@ public class FreezeSpawner : MonoBehaviour
     {
         if (freezePowerupPrefab == null) return;
 
-        int randomLane = Random.Range(0, lanePositions.Length);
-        float spawnX = lanePositions[randomLane];
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return;
+
+        float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
+        float spawnX = Random.Range(-halfWidth + spawnEdgeMargin, halfWidth - spawnEdgeMargin);
         float spawnY = player.position.y + spawnAheadDistance;
 
         Instantiate(freezePowerupPrefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);

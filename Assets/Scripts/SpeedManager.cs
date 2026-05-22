@@ -117,9 +117,17 @@ public class SpeedManager : MonoBehaviour
         if (currentScoreText)
             currentScoreText.text = "Score: " + Mathf.RoundToInt(totalDistance) * 10 + "m";
 
-        // Game over when player fully stops
-        if (hasLaunched && currentSpeed < 0.05f)
+        // Game over only once the player has fully stopped AND fuel is empty.
+        // This must come BEFORE the force-fall check below so both don't fire
+        // in the same frame (currentSpeed is captured once at the top of Update).
+        if (hasLaunched && currentFuel <= 0f && currentSpeed < 0.05f)
             GameOver();
+
+        // If the player's speed drops to near-zero while fuel is still available
+        // (e.g. hit by an obstacle), drain the fuel so gravity kicks in next frame
+        // and the player visually falls before game over triggers.
+        if (hasLaunched && currentFuel > 0f && currentSpeed < 0.1f)
+            currentFuel = 0f;
     }
 
     public void AddFuel(float amount)

@@ -11,5 +11,5 @@ AssetOrigin:
   productId: 257931
   packageName: 'UNDERPOLY: Free Hot-Air Balloons'
   packageVersion: 1.2
-  assetPath: Assets/UNDERPOLY - Free Hot-Air Balloons/Graphics/Renderer/URP/URP_Renderer.asset
+  assetPath: Assets/Sprites/balloons/Graphics/Renderer/URP/URP_Renderer.asset
   uploadId: 621836

@@ -81,7 +81,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: b080ad86f0cd580489d0eb97e3c49724, type: 3}
   m_Color: {r: 0.8773585, g: 0.72960144, b: 0.028969401, a: 1}
@@ -142,3 +142,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelPickup
   fuelAmount: 20
+  offScreenMargin: 0.1

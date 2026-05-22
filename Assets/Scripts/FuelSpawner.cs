@@ -17,8 +17,9 @@ public class FuelSpawner : MonoBehaviour
     public float mediumFuelChance = 30f; // 30% chance
     public float fullFuelChance = 10f;   // 10% chance
 
-    [Header("Lanes")]
-    public float[] lanePositions = { -2f, 0f, 2f };
+    [Header("Spawn Bounds")]
+    [Tooltip("Margin from screen edge when placing fuel pickups.")]
+    public float spawnEdgeMargin = 0.5f;
 
     [Header("References")]
     public Transform player;
@@ -26,9 +27,11 @@ public class FuelSpawner : MonoBehaviour
 
     private float timer;
     private float nextSpawnInterval;
+    private Camera mainCamera;
 
     void Start()
     {
+        mainCamera = Camera.main;
         nextSpawnInterval = Random.Range(spawnIntervalMin, spawnIntervalMax);
     }
 
@@ -48,8 +51,11 @@ public class FuelSpawner : MonoBehaviour
 
     void SpawnFuel()
     {
-        int randomLane = Random.Range(0, lanePositions.Length);
-        float spawnX = lanePositions[randomLane];
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return;
+
+        float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
+        float spawnX = Random.Range(-halfWidth + spawnEdgeMargin, halfWidth - spawnEdgeMargin);
         float spawnY = player.position.y + spawnAheadDistance;
 
         // Pick fuel type based on chance
