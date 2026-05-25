@@ -72,6 +72,11 @@ public class CloudBackground : MonoBehaviour
         if (offset <= -tileHeight)
             pos.y -= Mathf.Floor(offset / tileHeight) * tileHeight;
 
+        // Snap to the nearest screen pixel to eliminate sub-pixel jitter.
+        float ppu = Screen.height / (2f * targetCamera.orthographicSize);
+        if (ppu > 0f)
+            pos.y = Mathf.Round(pos.y * ppu) / ppu;
+
         transform.position = pos;
 
         // Grow the coverage rect only when needed — never shrink it.

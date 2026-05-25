@@ -10,9 +10,6 @@ public class SpeedManager : MonoBehaviour
     public float fuelDrainRate = 10f; // empties in 10 seconds
     public float myGravityScale = 1f;
 
-    [Header("Slowdown Settings")]
-    public float slowDownRate = 1f; // how fast speed reduces when fuel is empty
-
     [Header("UI")]
     public Image fillImage;
     public TextMeshProUGUI speedText;
@@ -84,13 +81,8 @@ public class SpeedManager : MonoBehaviour
         }
         else
         {
-            // Fuel empty — gradually slow down the player
+            // Fuel empty — gravity pulls the player down naturally
             playerRb.gravityScale = myGravityScale;
-            playerRb.linearVelocity = Vector2.Lerp(
-                playerRb.linearVelocity,
-                Vector2.zero,
-                slowDownRate * Time.deltaTime
-            );
         }
 
         // Update fuel ring
