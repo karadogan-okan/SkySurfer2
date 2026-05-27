@@ -56,7 +56,6 @@
     <Compile Include="Assets\Scripts\FreezeSpawner.cs" />
     <Compile Include="Assets\Scripts\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\SpeedManager.cs" />
-    <Compile Include="Assets\Scripts\PooledObject.cs" />
     <Compile Include="Assets\Scripts\ObstacleSpawner.cs" />
     <Compile Include="Assets\Scripts\FuelSpawner.cs" />
     <Compile Include="Assets\Scripts\SlingshotVisual.cs" />

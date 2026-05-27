@@ -111,7 +111,7 @@ public class SpeedManager : MonoBehaviour
         fillImage.fillAmount = currentFuel / maxFuel;
 
         // Update speed display
-        speedText.text = Mathf.RoundToInt(scrollSpeed * 10f).ToString();
+        speedText.text = Mathf.RoundToInt(scrollSpeed * 30f).ToString();
         if (unitText) unitText.text = "km/h";
 
         // Fuel ring color
@@ -125,7 +125,7 @@ public class SpeedManager : MonoBehaviour
 
         // Update live score
         if (currentScoreText)
-            currentScoreText.text = "Score: " + Mathf.RoundToInt(totalDistance) * 10 + "m";
+            currentScoreText.text = "Score: " + Mathf.RoundToInt(totalDistance) * 100 + "m";
 
         // If an obstacle hit drops speed near zero while fuel remains,
         // drain fuel so deceleration kicks in next frame.
@@ -175,7 +175,7 @@ public class SpeedManager : MonoBehaviour
         scrollSpeed = 0f;
         if (playerController) playerController.enabled = false;
 
-        int finalScore = Mathf.RoundToInt(totalDistance) * 10;
+        int finalScore = Mathf.RoundToInt(totalDistance) * 100;
 
         int highScore = PlayerPrefs.GetInt("HighScore", 0);
         if (finalScore > highScore)

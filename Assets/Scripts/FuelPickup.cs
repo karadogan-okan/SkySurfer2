@@ -47,8 +47,9 @@ public class FuelPickup : MonoBehaviour
 
     void ReturnToPool()
     {
-        var pooled = GetComponent<PooledObject>();
-        if (pooled != null) pooled.ReturnToPool();
-        else Destroy(gameObject);
+        if (PoolManager.Instance != null)
+            PoolManager.Instance.Release(gameObject);
+        else
+            Destroy(gameObject);
     }
 }

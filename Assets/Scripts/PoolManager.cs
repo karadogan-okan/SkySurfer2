@@ -4,22 +4,22 @@ using UnityEngine.Pool;
 
 /// <summary>
 /// Central object pool manager.
-/// Each prefab gets its own ObjectPool<GameObject>.
 /// Spawners call PoolManager.Instance.Get() instead of Instantiate().
-/// Objects call their PooledObject.ReturnToPool() instead of Destroy().
+/// Objects call PoolManager.Instance.Release(gameObject) instead of Destroy().
+/// No extra components needed on pooled objects.
 /// </summary>
 public class PoolManager : MonoBehaviour
 {
     public static PoolManager Instance { get; private set; }
 
-    [Tooltip("Max number of inactive objects kept per prefab type. Excess are destroyed.")]
-    public int maxPoolSize = 20;
+    [Tooltip("Max inactive objects kept per prefab type. For most mobile endless runners 3–5 is enough.")]
+    public int maxPoolSize = 5;
 
     // One pool per unique prefab (keyed by prefab instance ID)
-    private readonly Dictionary<int, ObjectPool<GameObject>> _pools = new();
+    private readonly Dictionary<int, ObjectPool<GameObject>> _prefabPools = new();
 
-    // Maps live instance ID → pool, so ReturnToPool knows where to go
-    private readonly Dictionary<int, ObjectPool<GameObject>> _instanceToPool = new();
+    // Maps live instance ID → its pool so Release() knows where to return it
+    private readonly Dictionary<int, ObjectPool<GameObject>> _instancePools = new();
 
     void Awake()
     {
@@ -33,32 +33,35 @@ public class PoolManager : MonoBehaviour
     {
         var pool = GetOrCreatePool(prefab);
         GameObject obj = pool.Get();
-
         obj.transform.SetPositionAndRotation(position, rotation);
 
-        // Stamp the instance so it can find its way back to the right pool
-        var pooled = obj.GetComponent<PooledObject>();
-        if (pooled == null) pooled = obj.AddComponent<PooledObject>();
-        pooled.Init(pool);
-
-        _instanceToPool[obj.GetInstanceID()] = pool;
+        // Track which pool this instance belongs to
+        _instancePools[obj.GetInstanceID()] = pool;
 
         return obj;
     }
 
     /// <summary>
-    /// Return an object to its pool (called by PooledObject.ReturnToPool).
+    /// Return an object to its pool. Call instead of Destroy(gameObject).
     /// </summary>
-    public void Return(GameObject obj, ObjectPool<GameObject> pool)
+    public void Release(GameObject obj)
     {
-        _instanceToPool.Remove(obj.GetInstanceID());
-        pool.Release(obj);
+        int id = obj.GetInstanceID();
+        if (_instancePools.TryGetValue(id, out var pool))
+        {
+            _instancePools.Remove(id);
+            pool.Release(obj);  // SetActive(false) — stays in hierarchy, ready to reuse
+        }
+        else
+        {
+            Destroy(obj);  // Fallback: not a pooled object
+        }
     }
 
     private ObjectPool<GameObject> GetOrCreatePool(GameObject prefab)
     {
         int id = prefab.GetInstanceID();
-        if (_pools.TryGetValue(id, out var existing))
+        if (_prefabPools.TryGetValue(id, out var existing))
             return existing;
 
         var pool = new ObjectPool<GameObject>(
@@ -67,11 +70,11 @@ public class PoolManager : MonoBehaviour
             actionOnRelease: obj => obj.SetActive(false),
             actionOnDestroy: obj => Destroy(obj),
             collectionCheck: false,
-            defaultCapacity: 8,
+            defaultCapacity: 3,
             maxSize:         maxPoolSize
         );
 
-        _pools[id] = pool;
+        _prefabPools[id] = pool;
         return pool;
     }
 }

@@ -13,16 +13,17 @@ public class ObstacleSpawner : MonoBehaviour
     public float staticSpawnIntervalMax = 2.5f;
     public int staticSpawnCountMin = 1;
     public int staticSpawnCountMax = 3;
+    [Tooltip("How far above the top of the screen static obstacles spawn.")]
+    public float staticSpawnAhead = 2f;
 
     [Header("Moving Spawn Settings")]
     public float movingSpawnIntervalMin = 3f;
     public float movingSpawnIntervalMax = 6f;
-
-    [Header("General Settings")]
-    [Tooltip("How far above the top of the screen obstacles spawn.")]
-    public float spawnAheadDistance = 2f;
-    [Tooltip("Margin from the screen edge when placing moving obstacles.")]
+    [Tooltip("How far above the top of the screen moving obstacles spawn. 0 = right at the screen edge.")]
+    public float movingSpawnAhead = 0f;
+    [Tooltip("Margin from the screen edge when placing PingPong obstacles.")]
     public float spawnEdgeMargin = 1f;
+
     [Tooltip("Lane X positions used for static obstacle placement.")]
     public float[] lanePositions = { -2f, 0f, 2f };
 
@@ -71,8 +72,7 @@ public class ObstacleSpawner : MonoBehaviour
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera == null) return;
 
-        // Spawn just above the top of the screen
-        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + spawnAheadDistance;
+        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + staticSpawnAhead;
 
         int count = Mathf.Clamp(
             Random.Range(staticSpawnCountMin, staticSpawnCountMax + 1),
@@ -105,26 +105,19 @@ public class ObstacleSpawner : MonoBehaviour
         if (mainCamera == null) return;
 
         float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
-        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + spawnAheadDistance;
+        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + movingSpawnAhead;
 
         GameObject prefab = movingObstaclePrefabs[Random.Range(0, movingObstaclePrefabs.Length)];
         if (prefab == null) return;
 
-        float spawnX;
-        Obstacle obs = prefab.GetComponent<Obstacle>();
+        // All moving obstacles spawn at one of the two top corners
+        bool fromLeft = Random.value > 0.5f;
+        float spawnX = fromLeft ? -halfWidth : halfWidth;
 
-        if (obs != null && obs.movePattern == ObstacleMovePattern.CrossScreen)
-        {
-            // Spawn just off the left or right edge so it crosses the screen
-            bool fromLeft = Random.value > 0.5f;
-            spawnX = fromLeft ? -halfWidth - 2f : halfWidth + 2f;
-        }
-        else
-        {
-            // PingPong — random X within screen bounds
-            spawnX = Random.Range(-halfWidth + spawnEdgeMargin, halfWidth - spawnEdgeMargin);
-        }
+        GameObject obj = PoolManager.Instance.Get(prefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
 
-        PoolManager.Instance.Get(prefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
+        // Init direction after position is set — OnEnable fires too early to read spawn position
+        Obstacle obstacle = obj.GetComponent<Obstacle>();
+        if (obstacle != null) obstacle.InitMovement(fromLeft);
     }
 }

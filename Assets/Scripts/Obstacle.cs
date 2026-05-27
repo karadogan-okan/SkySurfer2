@@ -4,7 +4,7 @@ public enum ObstacleMovePattern
 {
     Static,       // Scrolls down with world only — birds, balloons
     CrossScreen,  // Scrolls down + crosses horizontally — planes
-    PingPong      // Scrolls down + bounces left/right — UFOs
+    PingPong      // Scrolls down + bounces left/right within a range — UFOs
 }
 
 public class Obstacle : MonoBehaviour
@@ -17,8 +17,12 @@ public class Obstacle : MonoBehaviour
 
     [Header("Movement")]
     public ObstacleMovePattern movePattern = ObstacleMovePattern.Static;
-    [Tooltip("Horizontal movement speed for CrossScreen and PingPong patterns.")]
+    [Tooltip("Fixed horizontal movement speed (world units/sec). Applies to CrossScreen and PingPong.")]
     public float moveSpeed = 4f;
+
+    [Header("PingPong Settings")]
+    [Tooltip("How far left and right the UFO bounces from its spawn X position (world units).")]
+    public float pingPongRange = 1.5f;
 
     [Header("Cleanup")]
     [Tooltip("Viewport margin before object is returned to pool off-screen.")]
@@ -29,6 +33,7 @@ public class Obstacle : MonoBehaviour
     private float halfWidth;
     private bool hasEnteredScreen = false;
     private SpriteRenderer sr;
+    private float pingPongCenter;
 
     void Awake()
     {
@@ -36,7 +41,6 @@ public class Obstacle : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
     }
 
-    // OnEnable runs every time the object is retrieved from the pool — resets state.
     void OnEnable()
     {
         hasEnteredScreen = false;
@@ -44,13 +48,20 @@ public class Obstacle : MonoBehaviour
         if (mainCamera == null) mainCamera = Camera.main;
         if (mainCamera != null)
             halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
+    }
 
-        // CrossScreen: direction determined by spawn side.
-        // PingPong: random starting direction.
-        if (movePattern == ObstacleMovePattern.CrossScreen)
-            moveDir = transform.position.x < 0f ? 1f : -1f;
-        else
-            moveDir = Random.value > 0.5f ? 1f : -1f;
+    /// <summary>
+    /// Called by ObstacleSpawner after the object is positioned.
+    /// Sets direction and ping-pong center from the correct spawn position.
+    /// </summary>
+    public void InitMovement(bool spawnedOnLeft)
+    {
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera != null)
+            halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
+
+        moveDir = spawnedOnLeft ? 1f : -1f;
+        pingPongCenter = transform.position.x;
 
         ApplySpriteFlip();
     }
@@ -65,25 +76,24 @@ public class Obstacle : MonoBehaviour
     {
         float scrollSpeed = SpeedManager.Instance != null ? SpeedManager.Instance.ScrollSpeed : 0f;
 
-        // All obstacles scroll down with the world
         transform.position += Vector3.down * scrollSpeed * Time.deltaTime;
 
-        // Static obstacles only scroll — no horizontal movement needed
         if (movePattern == ObstacleMovePattern.Static) return;
 
-        // CrossScreen and PingPong add their own horizontal movement
         transform.position += Vector3.right * moveDir * moveSpeed * Time.deltaTime;
 
         if (movePattern == ObstacleMovePattern.PingPong)
         {
+            float leftBound  = Mathf.Max(pingPongCenter - pingPongRange, -halfWidth + 0.3f);
+            float rightBound = Mathf.Min(pingPongCenter + pingPongRange,  halfWidth - 0.3f);
+
             bool flipped = false;
-            if (transform.position.x >  halfWidth - 0.5f) { moveDir = -1f; flipped = true; }
-            if (transform.position.x < -halfWidth + 0.5f) { moveDir =  1f; flipped = true; }
+            if (transform.position.x > rightBound) { transform.position = new Vector3(rightBound, transform.position.y, 0f); moveDir = -1f; flipped = true; }
+            if (transform.position.x < leftBound)  { transform.position = new Vector3(leftBound,  transform.position.y, 0f); moveDir =  1f; flipped = true; }
             if (flipped) ApplySpriteFlip();
         }
     }
 
-    // Flip sprite to face direction of travel.
     void ApplySpriteFlip()
     {
         if (sr != null)
@@ -96,15 +106,12 @@ public class Obstacle : MonoBehaviour
 
         Vector3 vp = mainCamera.WorldToViewportPoint(transform.position);
 
-        // All obstacles: return to pool once scrolled below bottom of screen
         if (vp.y < -offScreenMargin)
         {
             ReturnToPool();
             return;
         }
 
-        // CrossScreen: wait until the plane has entered the viewport,
-        // then return to pool once it exits horizontally.
         if (movePattern == ObstacleMovePattern.CrossScreen)
         {
             if (!hasEnteredScreen)
@@ -124,11 +131,9 @@ public class Obstacle : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        // Reduce world scroll speed instead of modifying player velocity
         if (SpeedManager.Instance != null)
             SpeedManager.Instance.ReduceScrollSpeed(speedPenalty);
 
-        // Spawn hit particle effect
         if (hitParticlePrefab != null)
             Instantiate(hitParticlePrefab, transform.position, Quaternion.identity);
 
@@ -137,8 +142,9 @@ public class Obstacle : MonoBehaviour
 
     void ReturnToPool()
     {
-        var pooled = GetComponent<PooledObject>();
-        if (pooled != null) pooled.ReturnToPool();
-        else Destroy(gameObject);
+        if (PoolManager.Instance != null)
+            PoolManager.Instance.Release(gameObject);
+        else
+            Destroy(gameObject);
     }
 }

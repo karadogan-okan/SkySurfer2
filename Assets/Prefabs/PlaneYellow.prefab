@@ -82,7 +82,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 6
   m_MaskInteraction: 0
   m_Sprite: {fileID: 8801610105746337820, guid: 74d24cbcd2b794448afa5ebb3f96e988, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -109,7 +109,8 @@ MonoBehaviour:
   speedPenalty: 5
   hitParticlePrefab: {fileID: 0}
   movePattern: 1
-  moveSpeed: 2
+  moveSpeed: 3
+  pingPongRange: 1.5
   offScreenMargin: 0.2
 --- !u!61 &5648857135328262363
 BoxCollider2D:

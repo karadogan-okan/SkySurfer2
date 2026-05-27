@@ -294,7 +294,7 @@ MonoBehaviour:
   spawnAheadDistance: 10
   smallFuelChance: 60
   mediumFuelChance: 30
-  fullFuelChance: 10
+  fullFuelChance: 8
   spawnEdgeMargin: 0.5
   speedManager: {fileID: 1752991262}
 --- !u!4 &125106802
@@ -621,9 +621,10 @@ MonoBehaviour:
   staticSpawnIntervalMax: 3
   staticSpawnCountMin: 1
   staticSpawnCountMax: 3
+  staticSpawnAhead: 4
   movingSpawnIntervalMin: 4
   movingSpawnIntervalMax: 6
-  spawnAheadDistance: 10
+  movingSpawnAhead: 0
   spawnEdgeMargin: 1
   lanePositions:
   - -2
@@ -1873,8 +1874,8 @@ MonoBehaviour:
   maxFuel: 100
   fuelDrainRate: 10
   acceleration: 0.08
-  maxScrollSpeed: 13
-  decelerationRate: 2
+  maxScrollSpeed: 10
+  decelerationRate: 1
   fillImage: {fileID: 2098348942}
   speedText: {fileID: 1991890606}
   unitText: {fileID: 234778369}
@@ -1883,7 +1884,7 @@ MonoBehaviour:
   totalScoreText: {fileID: 855075905}
   highestScoreText: {fileID: 1650911480}
   playerController: {fileID: 1201926599}
-  infiniteFuel: 1
+  infiniteFuel: 0
 --- !u!4 &1752991263
 Transform:
   m_ObjectHideFlags: 0
@@ -2188,7 +2189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 092f24e4bbe15d640944f41e13be33c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PoolManager
-  maxPoolSize: 20
+  maxPoolSize: 5
 --- !u!4 &2043030310
 Transform:
   m_ObjectHideFlags: 0
@@ -2493,6 +2494,10 @@ PrefabInstance:
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3795615038385032638, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
+      propertyPath: fallGravityScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3795615038385032638, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
       propertyPath: launchMultiplier
       value: 5
       objectReference: {fileID: 0}
@@ -2554,7 +2559,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5131868082169534991, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
       propertyPath: m_Size.x
-      value: 0.88
+      value: 1.25
       objectReference: {fileID: 0}
     - target: {fileID: 5131868082169534991, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
       propertyPath: m_Size.y

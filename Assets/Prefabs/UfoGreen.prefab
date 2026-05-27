@@ -82,7 +82,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 6
   m_MaskInteraction: 0
   m_Sprite: {fileID: -1335372164229887253, guid: 7f0deadef8d797a45836b937d276357d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -109,7 +109,8 @@ MonoBehaviour:
   speedPenalty: 4
   hitParticlePrefab: {fileID: 0}
   movePattern: 2
-  moveSpeed: 2.5
+  moveSpeed: 3.5
+  pingPongRange: 3
   offScreenMargin: 0.2
 --- !u!58 &3081666921040926894
 CircleCollider2D:
