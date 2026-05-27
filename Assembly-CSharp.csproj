@@ -50,14 +50,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Obstacle.cs" />
+    <Compile Include="Assets\Scripts\PoolManager.cs" />
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\FuelPickup.cs" />
     <Compile Include="Assets\Scripts\FreezeSpawner.cs" />
     <Compile Include="Assets\Scripts\PlayerInputActions.cs" />
     <Compile Include="Assets\Scripts\SpeedManager.cs" />
+    <Compile Include="Assets\Scripts\PooledObject.cs" />
     <Compile Include="Assets\Scripts\ObstacleSpawner.cs" />
     <Compile Include="Assets\Scripts\FuelSpawner.cs" />
     <Compile Include="Assets\Scripts\SlingshotVisual.cs" />
+    <Compile Include="Assets\Scripts\WorldScroller.cs" />
     <Compile Include="Assets\Scripts\FuelFreezePickup.cs" />
     <Compile Include="Assets\Scripts\RestartButton.cs" />
     <Compile Include="Assets\Scripts\CloudBackground.cs" />

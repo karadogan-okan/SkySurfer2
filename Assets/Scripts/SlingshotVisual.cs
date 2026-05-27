@@ -80,6 +80,10 @@ public class SlingshotVisual : MonoBehaviour
 
             if (drag.y < 0)
             {
+                // Cap drag to max stretch distance
+                if (drag.magnitude > playerController.maxDragDistance)
+                    drag = drag.normalized * playerController.maxDragDistance;
+
                 currentDragDistance = drag.magnitude;
                 Vector3 pulledPos = player.position + (Vector3)drag;
                 DrawBands(pulledPos);
@@ -123,6 +127,10 @@ public class SlingshotVisual : MonoBehaviour
 
             if (drag.y < 0)
             {
+                // Cap drag to max stretch distance
+                if (drag.magnitude > playerController.maxDragDistance)
+                    drag = drag.normalized * playerController.maxDragDistance;
+
                 currentDragDistance = drag.magnitude;
                 Vector3 pulledPos = player.position + (Vector3)drag;
                 DrawBands(pulledPos);

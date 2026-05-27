@@ -290,13 +290,12 @@ MonoBehaviour:
   mediumFuelPrefab: {fileID: 1654041335665348501, guid: 66c21fc87b4eb3748a14265c345e2750, type: 3}
   fullFuelPrefab: {fileID: 922507654850860494, guid: d4e532dfd8c8e6d4cba65ed0ab95a5f2, type: 3}
   spawnIntervalMin: 2
-  spawnIntervalMax: 5
-  spawnAheadDistance: 15
+  spawnIntervalMax: 4
+  spawnAheadDistance: 10
   smallFuelChance: 60
   mediumFuelChance: 30
   fullFuelChance: 10
   spawnEdgeMargin: 0.5
-  player: {fileID: 1201926604}
   speedManager: {fileID: 1752991262}
 --- !u!4 &125106802
 Transform:
@@ -495,7 +494,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 685e6fcbd25ae3146ad652e5a2b8518a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudBackground
-  speedManager: {fileID: 1752991262}
   verticalMargin: 3
   parallaxMultiplier: 0.5
 --- !u!212 &317599031
@@ -625,13 +623,12 @@ MonoBehaviour:
   staticSpawnCountMax: 3
   movingSpawnIntervalMin: 4
   movingSpawnIntervalMax: 6
-  spawnAheadDistance: 18
+  spawnAheadDistance: 10
   spawnEdgeMargin: 1
   lanePositions:
   - -2
   - 0
   - 2
-  player: {fileID: 1201926604}
   speedManager: {fileID: 1752991262}
 --- !u!4 &324053351
 Transform:
@@ -680,9 +677,8 @@ MonoBehaviour:
   freezePowerupPrefab: {fileID: 354552039495924859, guid: 94e1e2c1547213641890987e241a8b0b, type: 3}
   spawnIntervalMin: 10
   spawnIntervalMax: 15
-  spawnAheadDistance: 15
+  spawnAheadDistance: 10
   spawnEdgeMargin: 0.5
-  player: {fileID: 1201926604}
   speedManager: {fileID: 1752991262}
 --- !u!4 &355389137
 Transform:
@@ -1364,6 +1360,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 855075903}
   m_CullTransparentMesh: 1
+--- !u!1 &940746291 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3807457666431419621, guid: a9df2ef4aec04834f80d2b6825d94946, type: 3}
+  m_PrefabInstance: {fileID: 4537273990587304983}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &940746295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 940746291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53b301a33b86a46489639b2f0f39b5f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldScroller
+  destroyWhenOffScreen: 1
+  offScreenMargin: 0.1
 --- !u!114 &1201926599 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3795615038385032638, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
@@ -1375,11 +1390,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcc01bf512987e541addaf8c5094543f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
---- !u!50 &1201926602 stripped
-Rigidbody2D:
-  m_CorrespondingSourceObject: {fileID: 164041757192043849, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
-  m_PrefabInstance: {fileID: 1684900293872077975}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1201926604 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5117270059683317890, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
@@ -1862,7 +1872,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpeedManager
   maxFuel: 100
   fuelDrainRate: 10
-  myGravityScale: 0.5
+  acceleration: 0.08
+  maxScrollSpeed: 13
+  decelerationRate: 2
   fillImage: {fileID: 2098348942}
   speedText: {fileID: 1991890606}
   unitText: {fileID: 234778369}
@@ -1870,9 +1882,8 @@ MonoBehaviour:
   gameOverPanel: {fileID: 50990720}
   totalScoreText: {fileID: 855075905}
   highestScoreText: {fileID: 1650911480}
-  playerRb: {fileID: 1201926602}
   playerController: {fileID: 1201926599}
-  cameraFollow: {fileID: 519420034}
+  infiniteFuel: 1
 --- !u!4 &1752991263
 Transform:
   m_ObjectHideFlags: 0
@@ -2148,6 +2159,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1991890604}
   m_CullTransparentMesh: 1
+--- !u!1 &2043030308
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2043030310}
+  - component: {fileID: 2043030309}
+  m_Layer: 0
+  m_Name: PoolManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2043030309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2043030308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 092f24e4bbe15d640944f41e13be33c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PoolManager
+  maxPoolSize: 20
+--- !u!4 &2043030310
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2043030308}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 21.21696, y: -0.33513, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2066659972
 GameObject:
   m_ObjectHideFlags: 0
@@ -2608,7 +2664,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3807457666431419621, guid: a9df2ef4aec04834f80d2b6825d94946, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 940746295}
   m_SourcePrefab: {fileID: 100100000, guid: a9df2ef4aec04834f80d2b6825d94946, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -2619,9 +2678,10 @@ SceneRoots:
   - {fileID: 4537273990587304983}
   - {fileID: 1684900293872077975}
   - {fileID: 1752991263}
+  - {fileID: 2043030310}
   - {fileID: 751754395}
   - {fileID: 589913344}
   - {fileID: 125106802}
   - {fileID: 355389137}
-  - {fileID: 1939622044}
   - {fileID: 324053351}
+  - {fileID: 1939622044}

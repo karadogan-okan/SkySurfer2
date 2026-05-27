@@ -12,37 +12,29 @@ public class PlayerController : MonoBehaviour
     public float screenEdgeMargin = 0.3f;
 
     [Header("Slingshot")]
-    [Tooltip("Multiplier converting drag distance (world units) to launch speed.")]
-    public float launchSpeedMultiplier = 6f;
-    [Tooltip("Maximum launch speed regardless of how far the slingshot is pulled.")]
+    [Tooltip("How far the band can physically stretch in world units. Controls the feel of the pull.")]
+    public float maxDragDistance = 3f;
+    [Tooltip("Scroll speed reached at full stretch. Upgrade this to make the slingshot more powerful.")]
     public float maxLaunchSpeed = 20f;
 
-    [Header("Acceleration")]
-    [Tooltip("Upward velocity added per second after launch.")]
-    public float acceleration = 2f;
-    [Tooltip("Maximum upward speed the player can reach via acceleration.")]
-    public float maxSpeed = 40f;
+    [Header("Fall Settings")]
+    [Tooltip("Gravity scale applied to the player when speed hits zero and they fall off screen.")]
+    public float fallGravityScale = 3f;
 
     private Rigidbody2D rb;
     private Camera mainCamera;
     private bool isLaunched = false;
     public bool IsLaunched => isLaunched;
 
-    private PlayerInputActions inputActions;
-
     void Awake()
     {
-        inputActions = new PlayerInputActions();
         EnhancedTouchSupport.Enable();
     }
-
-    void OnEnable() => inputActions.Player.Enable();
-    void OnDisable() => inputActions.Player.Disable();
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        rb.gravityScale = 0f;
+        rb.gravityScale = 0f;     // world scrolls — no physics needed
         mainCamera = Camera.main;
     }
 
@@ -53,20 +45,11 @@ public class PlayerController : MonoBehaviour
 #else
         HandleTouchMovement();
 #endif
-
-        // Gradually accelerate upward after launch
-        if (isLaunched && rb.linearVelocity.y > 0f)
-        {
-            float newSpeed = Mathf.Min(rb.linearVelocity.y + acceleration * Time.deltaTime, maxSpeed);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, newSpeed);
-        }
-
         ClampToScreen();
     }
 
     void HandleKeyboardInput()
     {
-        // Horizontal movement — hold to move continuously
         float moveDir = 0f;
         if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
             moveDir = -1f;
@@ -79,21 +62,20 @@ public class PlayerController : MonoBehaviour
             0f
         );
 
-        // Launch on S / Down arrow release
+        // Launch on S / Down arrow release — keyboard always launches at full power
         if (!isLaunched)
         {
             if (Keyboard.current.downArrowKey.wasReleasedThisFrame ||
                 Keyboard.current.sKey.wasReleasedThisFrame)
             {
-                Launch(maxLaunchSpeed / launchSpeedMultiplier);
+                Launch(maxDragDistance);
             }
         }
     }
 
     void HandleTouchMovement()
     {
-        // Movement input only active after launch —
-        // before launch, SlingshotVisual owns all touch input.
+        // SlingshotVisual owns all touch before launch
         if (!isLaunched) return;
 
         var activeTouches = Touch.activeTouches;
@@ -117,14 +99,28 @@ public class PlayerController : MonoBehaviour
         );
     }
 
+    // Called by SpeedManager when scroll speed hits zero.
+    // Enables gravity so the player visually falls off the bottom of the screen.
+    public void StartFalling()
+    {
+        enabled = false; // disable horizontal input during fall
+        rb.gravityScale = fallGravityScale;
+
+        // Freeze the camera so the player visually falls off the bottom of the screen.
+        // Without this, CameraFollow tracks the falling player and game over never triggers.
+        CameraFollow cf = Camera.main.GetComponent<CameraFollow>();
+        if (cf != null) cf.enabled = false;
+    }
+
     // Called by SlingshotVisual (touch/mouse) or keyboard input.
     // dragDistance: how far the slingshot was pulled in world units.
     public void Launch(float dragDistance)
     {
         isLaunched = true;
-        rb.gravityScale = 2f;
-        float speed = Mathf.Min(dragDistance * launchSpeedMultiplier, maxLaunchSpeed);
-        rb.linearVelocity = new Vector2(0f, speed);
+        // Normalize drag (0 → maxDragDistance) to speed (0 → maxLaunchSpeed)
+        float t = Mathf.Clamp01(dragDistance / maxDragDistance);
+        float speed = t * maxLaunchSpeed;
+        SpeedManager.Instance.SetScrollSpeed(speed);
     }
 
     void ClampToScreen()

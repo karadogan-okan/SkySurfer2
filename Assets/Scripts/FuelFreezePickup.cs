@@ -5,38 +5,44 @@ public class FuelFreezePickup : MonoBehaviour
     [SerializeField] private float freezeDuration = 5f;
 
     [Header("Cleanup")]
-    [Tooltip("Extra viewport margin below the screen before the object is destroyed.")]
     [SerializeField] private float offScreenMargin = 0.1f;
 
     private Camera mainCamera;
 
-    void Start()
+    void OnEnable()
     {
         mainCamera = Camera.main;
     }
 
     void Update()
     {
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
-            if (mainCamera == null) return;
-        }
+        // Scroll down with the world
+        if (SpeedManager.Instance != null)
+            transform.position += Vector3.down * SpeedManager.Instance.ScrollSpeed * Time.deltaTime;
 
-        Vector3 viewportPos = mainCamera.WorldToViewportPoint(transform.position);
-        if (viewportPos.y < -offScreenMargin)
-            Destroy(gameObject);
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return;
+
+        Vector3 vp = mainCamera.WorldToViewportPoint(transform.position);
+        if (vp.y < -offScreenMargin)
+            ReturnToPool();
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            SpeedManager speedManager = FindFirstObjectByType<SpeedManager>();
-            if (speedManager != null)
-                speedManager.ActivateFuelFreeze(freezeDuration);
+            if (SpeedManager.Instance != null)
+                SpeedManager.Instance.ActivateFuelFreeze(freezeDuration);
 
-            Destroy(gameObject);
+            ReturnToPool();
         }
+    }
+
+    void ReturnToPool()
+    {
+        var pooled = GetComponent<PooledObject>();
+        if (pooled != null) pooled.ReturnToPool();
+        else Destroy(gameObject);
     }
 }

@@ -10,19 +10,18 @@ public class FuelSpawner : MonoBehaviour
     [Header("Spawn Settings")]
     public float spawnIntervalMin = 2f;
     public float spawnIntervalMax = 4f;
-    public float spawnAheadDistance = 15f;
+    [Tooltip("How far above the top of the screen fuel spawns.")]
+    public float spawnAheadDistance = 2f;
 
     [Header("Spawn Chances (out of 100)")]
-    public float smallFuelChance = 60f;  // 60% chance
-    public float mediumFuelChance = 30f; // 30% chance
-    public float fullFuelChance = 10f;   // 10% chance
+    public float smallFuelChance = 60f;
+    public float mediumFuelChance = 30f;
+    public float fullFuelChance = 10f;
 
     [Header("Spawn Bounds")]
-    [Tooltip("Margin from screen edge when placing fuel pickups.")]
     public float spawnEdgeMargin = 0.5f;
 
     [Header("References")]
-    public Transform player;
     public SpeedManager speedManager;
 
     private float timer;
@@ -56,9 +55,8 @@ public class FuelSpawner : MonoBehaviour
 
         float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
         float spawnX = Random.Range(-halfWidth + spawnEdgeMargin, halfWidth - spawnEdgeMargin);
-        float spawnY = player.position.y + spawnAheadDistance;
+        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + spawnAheadDistance;
 
-        // Pick fuel type based on chance
         float roll = Random.Range(0f, 100f);
         GameObject prefabToSpawn;
 
@@ -70,6 +68,6 @@ public class FuelSpawner : MonoBehaviour
             prefabToSpawn = smallFuelPrefab;
 
         if (prefabToSpawn != null)
-            Instantiate(prefabToSpawn, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
+            PoolManager.Instance.Get(prefabToSpawn, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
     }
 }

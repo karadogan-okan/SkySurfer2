@@ -5,49 +5,50 @@ public class FuelPickup : MonoBehaviour
     public float fuelAmount = 20f;
 
     [Header("Cleanup")]
-    [Tooltip("Extra viewport margin below the screen before the object is destroyed.")]
     public float offScreenMargin = 0.1f;
 
     private Camera mainCamera;
 
-    void Start()
+    void OnEnable()
     {
+        // Reset camera ref in case it changed (e.g. scene reload)
         mainCamera = Camera.main;
     }
 
     void Update()
     {
+        // Scroll down with the world
+        if (SpeedManager.Instance != null)
+            transform.position += Vector3.down * SpeedManager.Instance.ScrollSpeed * Time.deltaTime;
+
         DestroyIfOffScreen();
     }
 
     void DestroyIfOffScreen()
     {
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
-            if (mainCamera == null) return;
-        }
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return;
 
-        // Convert the object's world position to viewport space.
-        // x and y are 0..1 when inside the camera view.
-        Vector3 viewportPos = mainCamera.WorldToViewportPoint(transform.position);
-
-        // Once the object has scrolled below the bottom of the screen, remove it.
-        if (viewportPos.y < -offScreenMargin)
-        {
-            Destroy(gameObject);
-        }
+        Vector3 vp = mainCamera.WorldToViewportPoint(transform.position);
+        if (vp.y < -offScreenMargin)
+            ReturnToPool();
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            SpeedManager speedManager = FindFirstObjectByType<SpeedManager>();
-            if (speedManager != null)
-                speedManager.AddFuel(fuelAmount);
+            if (SpeedManager.Instance != null)
+                SpeedManager.Instance.AddFuel(fuelAmount);
 
-            Destroy(gameObject);
+            ReturnToPool();
         }
+    }
+
+    void ReturnToPool()
+    {
+        var pooled = GetComponent<PooledObject>();
+        if (pooled != null) pooled.ReturnToPool();
+        else Destroy(gameObject);
     }
 }

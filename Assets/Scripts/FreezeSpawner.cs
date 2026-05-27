@@ -8,14 +8,13 @@ public class FreezeSpawner : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private float spawnIntervalMin = 8f;
     [SerializeField] private float spawnIntervalMax = 12f;
-    [SerializeField] private float spawnAheadDistance = 15f;
+    [Tooltip("How far above the top of the screen freeze pickups spawn.")]
+    [SerializeField] private float spawnAheadDistance = 2f;
 
     [Header("Spawn Bounds")]
-    [Tooltip("Margin from screen edge when placing freeze pickups.")]
     [SerializeField] private float spawnEdgeMargin = 0.5f;
 
     [Header("References")]
-    public Transform player;
     public SpeedManager speedManager;
 
     private float timer;
@@ -51,8 +50,8 @@ public class FreezeSpawner : MonoBehaviour
 
         float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
         float spawnX = Random.Range(-halfWidth + spawnEdgeMargin, halfWidth - spawnEdgeMargin);
-        float spawnY = player.position.y + spawnAheadDistance;
+        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + spawnAheadDistance;
 
-        Instantiate(freezePowerupPrefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
+        PoolManager.Instance.Get(freezePowerupPrefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
     }
 }

@@ -11,9 +11,7 @@ public class ObstacleSpawner : MonoBehaviour
     [Header("Static Spawn Settings")]
     public float staticSpawnIntervalMin = 1f;
     public float staticSpawnIntervalMax = 2.5f;
-    [Tooltip("Minimum number of static obstacles spawned at once.")]
     public int staticSpawnCountMin = 1;
-    [Tooltip("Maximum number of static obstacles spawned at once.")]
     public int staticSpawnCountMax = 3;
 
     [Header("Moving Spawn Settings")]
@@ -21,15 +19,14 @@ public class ObstacleSpawner : MonoBehaviour
     public float movingSpawnIntervalMax = 6f;
 
     [Header("General Settings")]
-    [Tooltip("How far above the player obstacles spawn.")]
-    public float spawnAheadDistance = 18f;
+    [Tooltip("How far above the top of the screen obstacles spawn.")]
+    public float spawnAheadDistance = 2f;
     [Tooltip("Margin from the screen edge when placing moving obstacles.")]
     public float spawnEdgeMargin = 1f;
     [Tooltip("Lane X positions used for static obstacle placement.")]
     public float[] lanePositions = { -2f, 0f, 2f };
 
     [Header("References")]
-    public Transform player;
     public SpeedManager speedManager;
 
     private float staticTimer;
@@ -71,16 +68,18 @@ public class ObstacleSpawner : MonoBehaviour
     {
         if (staticObstaclePrefabs.Length == 0) return;
         if (lanePositions.Length == 0) return;
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return;
 
-        float spawnY = player.position.y + spawnAheadDistance;
+        // Spawn just above the top of the screen
+        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + spawnAheadDistance;
 
-        // Clamp count to available lanes so we never spawn two in the same lane
         int count = Mathf.Clamp(
             Random.Range(staticSpawnCountMin, staticSpawnCountMax + 1),
             1, lanePositions.Length
         );
 
-        // Shuffle a copy of the lane indices and pick the first `count`
+        // Fisher-Yates shuffle to pick unique lanes
         int[] indices = new int[lanePositions.Length];
         for (int i = 0; i < indices.Length; i++) indices[i] = i;
         for (int i = indices.Length - 1; i > 0; i--)
@@ -95,7 +94,7 @@ public class ObstacleSpawner : MonoBehaviour
             if (prefab == null) continue;
 
             float spawnX = lanePositions[indices[i]];
-            Instantiate(prefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
+            PoolManager.Instance.Get(prefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
         }
     }
 
@@ -106,7 +105,7 @@ public class ObstacleSpawner : MonoBehaviour
         if (mainCamera == null) return;
 
         float halfWidth = mainCamera.orthographicSize * mainCamera.aspect;
-        float spawnY = player.position.y + spawnAheadDistance;
+        float spawnY = mainCamera.transform.position.y + mainCamera.orthographicSize + spawnAheadDistance;
 
         GameObject prefab = movingObstaclePrefabs[Random.Range(0, movingObstaclePrefabs.Length)];
         if (prefab == null) return;
@@ -116,16 +115,16 @@ public class ObstacleSpawner : MonoBehaviour
 
         if (obs != null && obs.movePattern == ObstacleMovePattern.CrossScreen)
         {
-            // Spawn just off the left or right edge so it enters the screen
+            // Spawn just off the left or right edge so it crosses the screen
             bool fromLeft = Random.value > 0.5f;
             spawnX = fromLeft ? -halfWidth - 2f : halfWidth + 2f;
         }
         else
         {
-            // PingPong — random position within screen
+            // PingPong — random X within screen bounds
             spawnX = Random.Range(-halfWidth + spawnEdgeMargin, halfWidth - spawnEdgeMargin);
         }
 
-        Instantiate(prefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
+        PoolManager.Instance.Get(prefab, new Vector3(spawnX, spawnY, 0f), Quaternion.identity);
     }
 }

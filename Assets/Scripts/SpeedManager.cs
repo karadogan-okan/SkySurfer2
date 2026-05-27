@@ -5,38 +5,53 @@ using UnityEngine.SceneManagement;
 
 public class SpeedManager : MonoBehaviour
 {
+    public static SpeedManager Instance { get; private set; }
+
     [Header("Fuel Settings")]
     public float maxFuel = 100f;
-    public float fuelDrainRate = 10f; // empties in 10 seconds
-    public float myGravityScale = 1f;
+    public float fuelDrainRate = 10f;
+
+    [Header("Speed Settings")]
+    [Tooltip("How fast scroll speed increases per second while fuel is available.")]
+    public float acceleration = 0.5f;
+    [Tooltip("Maximum scroll speed the world can reach. Acts as a hard cap — scroll speed never exceeds this.")]
+    public float maxScrollSpeed = 20f;
+    [Tooltip("How fast scroll speed drops per second when fuel is empty.")]
+    public float decelerationRate = 3f;
 
     [Header("UI")]
     public Image fillImage;
     public TextMeshProUGUI speedText;
     public TextMeshProUGUI unitText;
-    public TextMeshProUGUI currentScoreText; // top right live score
+    public TextMeshProUGUI currentScoreText;
 
     [Header("Game Over")]
     public GameObject gameOverPanel;
-    public TextMeshProUGUI totalScoreText;  // final score
-    public TextMeshProUGUI highestScoreText; // highest score
+    public TextMeshProUGUI totalScoreText;
+    public TextMeshProUGUI highestScoreText;
 
     [Header("References")]
-    public Rigidbody2D playerRb;
     public PlayerController playerController;
-    public CameraFollow cameraFollow;
+
+    [Header("Debug")]
+    [Tooltip("When ON, fuel never drains. Use in Editor to test gameplay without time pressure.")]
+    public bool infiniteFuel = false;
 
     private float currentFuel;
     private bool isGameOver = false;
     private bool hasLaunched = false;
+    private bool isFalling = false;
     private float totalDistance = 0f;
     private float freezeTimer = 0f;
+    private float scrollSpeed = 0f;
 
     public bool HasLaunched => hasLaunched;
     public bool IsGameOver => isGameOver;
+    public float ScrollSpeed => scrollSpeed;
 
     void Awake()
     {
+        Instance = this;
         SetGaugeVisible(false);
         if (currentScoreText) currentScoreText.gameObject.SetActive(false);
     }
@@ -47,49 +62,56 @@ public class SpeedManager : MonoBehaviour
         if (gameOverPanel) gameOverPanel.SetActive(false);
     }
 
+    // Called by PlayerController.Launch() when the slingshot releases.
+    public void SetScrollSpeed(float speed)
+    {
+        scrollSpeed = Mathf.Min(speed, maxScrollSpeed);
+        hasLaunched = true;
+        SetGaugeVisible(true);
+        if (currentScoreText) currentScoreText.gameObject.SetActive(true);
+    }
+
+    // Called by Obstacle when the player is hit.
+    public void ReduceScrollSpeed(float amount)
+    {
+        scrollSpeed = Mathf.Max(0f, scrollSpeed - amount);
+    }
+
     void Update()
     {
         if (isGameOver) return;
-
-        float currentSpeed = playerRb.linearVelocity.magnitude;
-
-        // Show gauge only after first launch
-        if (!hasLaunched && currentSpeed > 1f)
-        {
-            hasLaunched = true;
-            SetGaugeVisible(true);
-            if (currentScoreText) currentScoreText.gameObject.SetActive(true);
-        }
-
         if (!hasLaunched) return;
 
         // Count down freeze timer
         if (freezeTimer > 0f)
             freezeTimer -= Time.deltaTime;
 
-        // Drain fuel over time (skip while freeze is active)
         if (currentFuel > 0f)
         {
-            if (freezeTimer <= 0f)
+            // Drain fuel (skip while frozen or infinite fuel debug is on)
+            if (freezeTimer <= 0f && !infiniteFuel)
             {
                 currentFuel -= fuelDrainRate * Time.deltaTime;
                 currentFuel = Mathf.Clamp(currentFuel, 0f, maxFuel);
             }
 
-            // No gravity while fuel is available or frozen
-            playerRb.gravityScale = 0f;
+            // Accelerate scroll speed while fuel is available
+            scrollSpeed = Mathf.Min(scrollSpeed + acceleration * Time.deltaTime, maxScrollSpeed);
         }
         else
         {
-            // Fuel empty — gravity pulls the player down naturally
-            playerRb.gravityScale = myGravityScale;
+            // Fuel empty — decelerate scroll speed naturally
+            scrollSpeed = Mathf.Max(0f, scrollSpeed - decelerationRate * Time.deltaTime);
         }
+
+        // Accumulate score distance
+        totalDistance += scrollSpeed * Time.deltaTime;
 
         // Update fuel ring
         fillImage.fillAmount = currentFuel / maxFuel;
 
-        // Update speed number
-        speedText.text = Mathf.RoundToInt(currentSpeed * 10f).ToString();
+        // Update speed display
+        speedText.text = Mathf.RoundToInt(scrollSpeed * 10f).ToString();
         if (unitText) unitText.text = "km/h";
 
         // Fuel ring color
@@ -101,25 +123,34 @@ public class SpeedManager : MonoBehaviour
         else
             fillImage.color = new Color(1f, 0.2f, 0.2f);
 
-        // Track upward distance
-        if (playerRb.linearVelocity.y > 0)
-            totalDistance += playerRb.linearVelocity.y * Time.deltaTime;
-
-        // Update live score on top right
+        // Update live score
         if (currentScoreText)
             currentScoreText.text = "Score: " + Mathf.RoundToInt(totalDistance) * 10 + "m";
 
-        // Game over only once the player has fully stopped AND fuel is empty.
-        // This must come BEFORE the force-fall check below so both don't fire
-        // in the same frame (currentSpeed is captured once at the top of Update).
-        if (hasLaunched && currentFuel <= 0f && currentSpeed < 0.05f)
-            GameOver();
-
-        // If the player's speed drops to near-zero while fuel is still available
-        // (e.g. hit by an obstacle), drain the fuel so gravity kicks in next frame
-        // and the player visually falls before game over triggers.
-        if (hasLaunched && currentFuel > 0f && currentSpeed < 0.1f)
+        // If an obstacle hit drops speed near zero while fuel remains,
+        // drain fuel so deceleration kicks in next frame.
+        if (currentFuel > 0f && scrollSpeed < 0.1f)
             currentFuel = 0f;
+
+        // When scroll speed hits zero, start the fall phase instead of
+        // immediately showing game over — gives the player a visual fall.
+        if (scrollSpeed <= 0f && !isFalling)
+        {
+            isFalling = true;
+            if (playerController) playerController.StartFalling();
+        }
+
+        // Game over once the falling player exits the bottom of the screen
+        if (isFalling)
+        {
+            Camera cam = Camera.main;
+            if (cam != null && playerController != null)
+            {
+                float camBottom = cam.transform.position.y - cam.orthographicSize;
+                if (playerController.transform.position.y < camBottom)
+                    GameOver();
+            }
+        }
     }
 
     public void AddFuel(float amount)
@@ -129,7 +160,6 @@ public class SpeedManager : MonoBehaviour
 
     public void ActivateFuelFreeze(float duration)
     {
-        // If a freeze is already active, extend it rather than restart it.
         freezeTimer = Mathf.Max(freezeTimer, duration);
     }
 
@@ -140,13 +170,13 @@ public class SpeedManager : MonoBehaviour
 
     void GameOver()
     {
+        if (isGameOver) return;
         isGameOver = true;
-        playerController.enabled = false;
-        cameraFollow.enabled = false;
+        scrollSpeed = 0f;
+        if (playerController) playerController.enabled = false;
 
         int finalScore = Mathf.RoundToInt(totalDistance) * 10;
 
-        // Save high score
         int highScore = PlayerPrefs.GetInt("HighScore", 0);
         if (finalScore > highScore)
         {
@@ -155,7 +185,6 @@ public class SpeedManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        // Update game over UI
         if (totalScoreText) totalScoreText.text = "Total Score: " + finalScore + "m";
         if (highestScoreText) highestScoreText.text = "Best Score: " + highScore + "m";
         if (gameOverPanel) gameOverPanel.SetActive(true);
