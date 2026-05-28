@@ -607,6 +607,14 @@ MonoBehaviour:
   - {fileID: 3409984717742828122, guid: da8ae10a3ebc59a429029c4955013e6e, type: 3}
   - {fileID: 2787598053806573127, guid: 3338530678f6dc1469e15530c927e585, type: 3}
   - {fileID: 4063673264389929970, guid: 48fcee33ce9749245b78dfb0a369c85b, type: 3}
+  - {fileID: 2205288788024861064, guid: 9242daabe537572499ae45c49037a66a, type: 3}
+  - {fileID: 3636592943492213892, guid: 3c47428bc1ae05444b4ed0acdbaff38a, type: 3}
+  - {fileID: 5999396178547107704, guid: a9094ffaad80ea14da4331fb6d9a7e1e, type: 3}
+  - {fileID: 1878884306286986637, guid: 915e2aeabbc487940ad1ce4c875c96a2, type: 3}
+  - {fileID: 2503634310712405937, guid: 678bce44cee9ad341858d99e1cbbb3cb, type: 3}
+  - {fileID: 2446135660906146453, guid: b0564db6d1e40eb4d9bf3b2c09ac616e, type: 3}
+  - {fileID: 1321272492828708627, guid: bc7602e785564c2499c14b0c6edde782, type: 3}
+  - {fileID: 2153134480325341255, guid: 116b87150e043b847a656bacb55fb9a0, type: 3}
   movingObstaclePrefabs:
   - {fileID: 3490260536857382563, guid: 7d9aac0fa37a41b49be12b5befb2cf3a, type: 3}
   - {fileID: 5660993507245602889, guid: b227b8255e27a0849a8466d8c97d1b2d, type: 3}
@@ -619,7 +627,7 @@ MonoBehaviour:
   - {fileID: 4426895380319077924, guid: 71b8878c05155c045a8bb02a1109f399, type: 3}
   staticSpawnIntervalMin: 1
   staticSpawnIntervalMax: 3
-  staticSpawnCountMin: 1
+  staticSpawnCountMin: 2
   staticSpawnCountMax: 3
   staticSpawnAhead: 4
   movingSpawnIntervalMin: 4
@@ -2487,7 +2495,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3795615038385032638, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
       propertyPath: maxDragDistance
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3795615038385032638, guid: b978f79fecb6c8d4fb4b8efc1687ddb3, type: 3}
       propertyPath: minDragToLaunch
