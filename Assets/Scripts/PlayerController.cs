@@ -71,6 +71,13 @@ public class PlayerController : MonoBehaviour
                 Launch(maxDragDistance);
             }
         }
+
+        // Boost on Up arrow press
+        if (isLaunched && Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
+            if (SpeedManager.Instance != null)
+                SpeedManager.Instance.ActivateBoost();
+        }
     }
 
     void HandleTouchMovement()

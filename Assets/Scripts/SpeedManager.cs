@@ -24,6 +24,7 @@ public class SpeedManager : MonoBehaviour
     public TextMeshProUGUI speedText;
     public TextMeshProUGUI unitText;
     public TextMeshProUGUI currentScoreText;
+    public GameObject boostButtonObject;
 
     [Header("Game Over")]
     public GameObject gameOverPanel;
@@ -32,6 +33,16 @@ public class SpeedManager : MonoBehaviour
 
     [Header("References")]
     public PlayerController playerController;
+
+    [Header("Boost Settings")]
+    [Tooltip("Speed added when boost is activated. Increase this value for upgrades.")]
+    public float boostAmount = 5f;
+    [Tooltip("How fast the boost ramps up to its target speed (units per second).")]
+    public float boostAccelerationRate = 8f;
+    [Tooltip("How fast speed decays back to maxScrollSpeed after an overdrive boost.")]
+    public float overdriveDragRate = 2f;
+    [Tooltip("Cooldown in seconds before the player can boost again.")]
+    public float boostCooldown = 45f;
 
     [Header("Debug")]
     [Tooltip("When ON, fuel never drains. Use in Editor to test gameplay without time pressure.")]
@@ -44,10 +55,16 @@ public class SpeedManager : MonoBehaviour
     private float totalDistance = 0f;
     private float freezeTimer = 0f;
     private float scrollSpeed = 0f;
+    private float boostCooldownTimer = 0f;
+    private float boostTargetSpeed = 0f;
+    private bool isBoosting = false;
 
     public bool HasLaunched => hasLaunched;
     public bool IsGameOver => isGameOver;
     public float ScrollSpeed => scrollSpeed;
+    public bool CanBoost => boostCooldownTimer <= 0f && hasLaunched && !isGameOver;
+    // 0 = cooldown just started, 1 = ready to boost
+    public float BoostCooldownProgress => boostCooldown > 0f ? Mathf.Clamp01(1f - boostCooldownTimer / boostCooldown) : 1f;
 
     void Awake()
     {
@@ -82,9 +99,11 @@ public class SpeedManager : MonoBehaviour
         if (isGameOver) return;
         if (!hasLaunched) return;
 
-        // Count down freeze timer
+        // Count down timers
         if (freezeTimer > 0f)
             freezeTimer -= Time.deltaTime;
+        if (boostCooldownTimer > 0f)
+            boostCooldownTimer -= Time.deltaTime;
 
         if (currentFuel > 0f)
         {
@@ -95,8 +114,23 @@ public class SpeedManager : MonoBehaviour
                 currentFuel = Mathf.Clamp(currentFuel, 0f, maxFuel);
             }
 
-            // Accelerate scroll speed while fuel is available
-            scrollSpeed = Mathf.Min(scrollSpeed + acceleration * Time.deltaTime, maxScrollSpeed);
+            if (isBoosting)
+            {
+                // Gradually ramp up toward boost target
+                scrollSpeed = Mathf.MoveTowards(scrollSpeed, boostTargetSpeed, boostAccelerationRate * Time.deltaTime);
+                if (Mathf.Approximately(scrollSpeed, boostTargetSpeed))
+                    isBoosting = false;
+            }
+            else if (scrollSpeed < maxScrollSpeed)
+            {
+                // Accelerate toward max speed normally
+                scrollSpeed = Mathf.Min(scrollSpeed + acceleration * Time.deltaTime, maxScrollSpeed);
+            }
+            else if (scrollSpeed > maxScrollSpeed)
+            {
+                // Overdrive — decay back to max speed
+                scrollSpeed = Mathf.Max(maxScrollSpeed, scrollSpeed - overdriveDragRate * Time.deltaTime);
+            }
         }
         else
         {
@@ -153,6 +187,14 @@ public class SpeedManager : MonoBehaviour
         }
     }
 
+    public void ActivateBoost()
+    {
+        if (!CanBoost) return;
+        boostTargetSpeed = scrollSpeed + boostAmount;
+        isBoosting = true;
+        boostCooldownTimer = boostCooldown;
+    }
+
     public void AddFuel(float amount)
     {
         currentFuel = Mathf.Clamp(currentFuel + amount, 0f, maxFuel);
@@ -166,6 +208,7 @@ public class SpeedManager : MonoBehaviour
     void SetGaugeVisible(bool visible)
     {
         fillImage.transform.parent.gameObject.SetActive(visible);
+        if (boostButtonObject) boostButtonObject.SetActive(visible);
     }
 
     void GameOver()
