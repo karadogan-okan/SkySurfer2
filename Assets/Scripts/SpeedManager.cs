@@ -91,6 +91,12 @@ public class SpeedManager : MonoBehaviour
     // Called by Obstacle when the player is hit.
     public void ReduceScrollSpeed(float amount)
     {
+        if (isBoosting)
+        {
+            // Hit during boost — stop the boost at current speed, ignore penalty
+            isBoosting = false;
+            return;
+        }
         scrollSpeed = Mathf.Max(0f, scrollSpeed - amount);
     }
 
