@@ -2275,7 +2275,7 @@ MonoBehaviour:
   boostAmount: 2
   boostAccelerationRate: 1
   overdriveDragRate: 1
-  boostCooldown: 30
+  boostCooldown: 45
   infiniteFuel: 0
 --- !u!4 &1752991263
 Transform:
