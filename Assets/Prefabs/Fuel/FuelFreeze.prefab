@@ -151,5 +151,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5022659499c18dd47aa9c234f1e434d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelFreezePickup
-  freezeDuration: 5
+  freezeDuration: 3
   offScreenMargin: 0.1
