@@ -35,6 +35,10 @@ public class FuelFreezePickup : MonoBehaviour
             if (SpeedManager.Instance != null)
                 SpeedManager.Instance.ActivateFuelFreeze(freezeDuration);
 
+            // Tight frost burst right on the pickup itself so it reads as the
+            // item freezing, not a screen-wide effect.
+            FreezeParticleEffect.Spawn(transform.position);
+
             ReturnToPool();
         }
     }
