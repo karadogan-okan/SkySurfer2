@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5843194157592878450}
   m_Layer: 0
   m_Name: Bird 2 Blue_0
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -133,6 +133,7 @@ MonoBehaviour:
   hitParticlePrefab: {fileID: 0}
   movePattern: 0
   moveSpeed: 4
+  pingPongRange: 1.5
   offScreenMargin: 0.2
 --- !u!58 &4094345913990787900
 CircleCollider2D:

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 2654308136220325805}
   m_Layer: 0
   m_Name: Bird3_Egret4_0
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

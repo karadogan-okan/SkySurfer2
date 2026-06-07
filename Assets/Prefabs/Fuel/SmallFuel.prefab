@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5367481565628142211}
   m_Layer: 0
   m_Name: SmallFuel
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -141,5 +141,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0b330225542e2546af8cfbbf488808a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelPickup
-  fuelAmount: 20
+  fuelAmount: 25
   offScreenMargin: 0.1

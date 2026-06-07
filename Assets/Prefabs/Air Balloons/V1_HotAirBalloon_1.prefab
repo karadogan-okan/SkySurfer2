@@ -376,7 +376,7 @@ GameObject:
   - component: {fileID: 8356373693689265157}
   m_Layer: 0
   m_Name: V1_HotAirBalloon_1
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -416,6 +416,7 @@ MonoBehaviour:
   hitParticlePrefab: {fileID: 0}
   movePattern: 0
   moveSpeed: 4
+  pingPongRange: 1.5
   offScreenMargin: 0.2
 --- !u!70 &1769296769530983611
 CapsuleCollider2D:

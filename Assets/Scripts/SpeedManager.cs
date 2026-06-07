@@ -108,6 +108,7 @@ public class SpeedManager : MonoBehaviour
         hasLaunched = true;
         SetGaugeVisible(true);
         if (currentScoreText) currentScoreText.gameObject.SetActive(true);
+        if (StarManager.Instance != null) StarManager.Instance.ShowUI();
     }
 
     // Called by Obstacle when the player is hit.

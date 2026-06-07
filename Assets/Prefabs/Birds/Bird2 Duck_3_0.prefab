@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 6532153168837481053}
   m_Layer: 0
   m_Name: Bird2 Duck_3_0
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
